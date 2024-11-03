@@ -14,8 +14,9 @@ DBG = -g -O0 -Wall -Wextra -Wsign-compare -pedantic -Walloc-zero \
 	  -Wsuggest-attribute=const -Wswitch-default -Wswitch -Wundef \
 	  -Wduplicated-cond -Wduplicated-branches -Wunused-result -Wformat-security \
 	  -Wformat-overflow -Wformat-truncation -Wformat-signedness
-BLD_DIR := build
 OUT_DIR := out
+BLD_DIR := $(OUT_DIR)/build
+
 $(shell mkdir -p $(OUT_DIR))
 
 all: prog test
@@ -26,7 +27,7 @@ all: prog test
 SRC_DIR := src
 OUT := prog
 SRC := $(shell find $(SRC_DIR) -type f -name *.c)
-OBJ := $(patsubst $(SRC_DIR)/%.c, $(BLD_DIR)/%.o, $(SRC))
+OBJ := $(patsubst $(SRC_DIR)/%.c, $(BLD_DIR)/$(SRC_DIR)/%.o, $(SRC))
 INC := -I $(SRC_DIR)
 LIB :=
 DEP := $(OBJ:.o=.d)
@@ -34,7 +35,7 @@ DEP := $(OBJ:.o=.d)
 prog: $(OBJ)
 	$(CC) $(VER) $(DBG) $^ -o $(OUT_DIR)/$(OUT) $(LIB) $(INC)
 
-$(BLD_DIR)/%.o: $(SRC_DIR)/%.c
+$(BLD_DIR)/$(SRC_DIR)/%.o: $(SRC_DIR)/%.c
 	mkdir -p $(@D)
 	$(CC) $(VER) $(DBG) -MMD -MP -c $< -o $@ $(INC)
 
@@ -47,7 +48,7 @@ TST_DIR := test
 TST_OUT := test
 TST_SRC := $(shell find $(TST_DIR) -type f -name '*.c')
 TST_OBJ := $(patsubst $(TST_DIR)/%.c, $(BLD_DIR)/$(TST_DIR)/%.o, $(TST_SRC))
-TST_OBJ += $(filter-out $(BLD_DIR)/main.o $(BLD_DIR)/main.d, $(OBJ))
+TST_OBJ += $(filter-out $(BLD_DIR)/$(SRC_DIR)/main.o $(BLD_DIR)/$(SRC_DIR)/main.d, $(OBJ))
 TST_INC := $(INC) -I $(TST_DIR)
 TST_LIB := $(LIB)
 TST_DEP := $(TST_OBJ:.o=.d)
@@ -81,5 +82,5 @@ prod: all
 .PHONY: clear
 
 clear:  # Delete build directory and program
-	rm -rf $(BLD_DIR) $(OUT_DIR)
+	rm -rf $(OUT_DIR)
 	clear
